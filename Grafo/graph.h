@@ -32,6 +32,7 @@ public:
 
     Dist x, y;
     std::list<NodePtrDist<Dist> > neighbors;
+    bool visited;
 };
 
 template<class Dist>
@@ -44,9 +45,17 @@ public:
     void delete_edge(int i1, int j1, int i2, int j2);
     void delete_edge(Node<Dist>* n1, Node<Dist>* n2);
     void delete_node(int i, int j);
+    void find_path_dfs(int sx, int sy, int tx, int ty, std::list<Node<Dist>*> &path);
+    void find_path_hill_climb(int sx, int sy, int tx, int ty, std::list<Node<Dist>*> &path);
 private:
     int h, w;
     std::vector<std::vector<Node<Dist>*> >* nodes;
+};
+
+template<class Dist>
+struct LessNPD
+{
+    bool operator()(NodePtrDist<Dist> a, NodePtrDist<Dist> b);
 };
 
 template<class Dist>

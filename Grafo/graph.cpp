@@ -1,6 +1,9 @@
 #include "graph.h"
 
 #include <GL/glut.h>
+#include <vector>
+#include <list>
+#include <algorithm>
 
 template<class Dist>
 NodePtrDist<Dist>::NodePtrDist()
@@ -22,6 +25,7 @@ Node<Dist>::Node(Dist _x, Dist _y)
 {
 	x = _x;
 	y = _y;
+	visited = false;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -123,6 +127,130 @@ void Graph<Dist>::delete_node(int i, int j)
 		delete (*nodes)[j][i];
 		(*nodes)[j][i] = nullptr;		
 	}
+}
+
+template<class Dist>
+void Graph<Dist>::find_path_dfs(int sx, int sy, int tx, int ty, std::list<Node<Dist>*> &path)
+{
+	Node<Dist>* source = (*nodes)[sy][sx];
+	Node<Dist>* target = (*nodes)[ty][tx];
+	Node<Dist>* node;
+	Node<Dist>* neighbour;
+
+	std::list<std::list<Node<Dist>*> > paths;
+	std::list<Node<Dist>*> path1, aux_path;
+	path1.push_back(source);
+	paths.push_front(path1);
+
+	bool found = false;
+	while (paths.empty() == false && found == false)
+	{
+		node = (paths.front()).back();
+		node->visited = true;
+		if (node == target)
+		{
+			path = paths.front();
+			found = true;
+		}
+		else
+		{
+			aux_path = paths.front();
+			paths.pop_front();
+			for (auto it = (node->neighbors).begin(); it != (node->neighbors).end(); ++it)
+			{
+				neighbour = (*it).node_ptr;
+				if (neighbour->visited == false)
+				{
+					aux_path.push_back(neighbour);
+					paths.push_front(aux_path);
+					aux_path.pop_back();
+				}
+			}
+		}
+	}
+
+	//clean visited
+	for (int i = 0; i < h; ++i)
+	{
+		for (int j = 0; j < w; ++j)
+		{
+			if ((*nodes)[i][j] != nullptr)
+			{
+				(*nodes)[i][j]->visited = false;
+			}
+		}
+	}
+}
+
+template<class Dist>
+void Graph<Dist>::find_path_hill_climb(int sx, int sy, int tx, int ty, std::list<Node<Dist>*> &path)
+{
+	Node<Dist>* source = (*nodes)[sy][sx];
+	Node<Dist>* target = (*nodes)[ty][tx];
+	Node<Dist>* node;
+	Node<Dist>* neighbour;
+	std::vector<NodePtrDist<Dist> > vec_nodes;
+	Dist d;
+
+	std::list<std::list<Node<Dist>*> > paths;
+	std::list<Node<Dist>*> path1, aux_path;
+	path1.push_back(source);
+	paths.push_front(path1);
+
+	bool found = false;
+	while (paths.empty() == false && found == false)
+	{
+		node = (paths.front()).back();
+		node->visited = true;
+		if (node == target)
+		{
+			path = paths.front();
+			found = true;
+		}
+		else
+		{
+			aux_path = paths.front();
+			paths.pop_front();
+			vec_nodes = std::vector<NodePtrDist<Dist> >();
+			for (auto it = (node->neighbors).begin(); it != (node->neighbors).end(); ++it)
+			{
+				neighbour = (*it).node_ptr;
+				if (neighbour->visited == false)
+				{
+					d = get_euc_dist(neighbour, target);
+					vec_nodes.push_back(NodePtrDist<Dist>(neighbour, d));
+				}
+			}
+			std::sort(vec_nodes.begin(), vec_nodes.end(), LessNPD<Dist>());
+			for (int i = vec_nodes.size() - 1; i >= 0; --i)
+			{
+				aux_path.push_back(vec_nodes[i].node_ptr);
+				paths.push_front(aux_path);
+				aux_path.pop_back();
+			}
+		}
+	}
+
+	//clean visited
+	for (int i = 0; i < h; ++i)
+	{
+		for (int j = 0; j < w; ++j)
+		{
+			if ((*nodes)[i][j] != nullptr)
+			{
+				(*nodes)[i][j]->visited = false;
+			}
+		}
+	}
+}
+
+template<class Dist>
+bool LessNPD<Dist>::operator()(NodePtrDist<Dist> a, NodePtrDist<Dist> b)
+{
+	if (a.dist < b.dist)
+		return true;
+	else
+		return false;
 }
 
 template<class Dist>

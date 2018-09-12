@@ -29,7 +29,33 @@ int main(int argc, char** argv)
     {
         graph->delete_edge(x, y, x, y+1);
     }
+
+//////////////////////////////////////
+
+    std::list<Node<float>*> path1;
+    graph->find_path_dfs(0, 0, 3, 3, path1);
     
+    std::cout << "Depth first search:\n";
+    for (auto it = path1.begin(); it != path1.end(); ++it)
+    {
+        std::cout << "(" << (*it)->x << ", " << (*it)->y << "); ";
+    }
+    std::cout << "\n\n";
+
+//////////////////////////////////////////
+
+    std::list<Node<float>*> path2;
+    graph->find_path_hill_climb(0, 0, 3, 3, path2);
+    
+    std::cout << "Hill climbing:\n";
+    for (auto it = path2.begin(); it != path2.end(); ++it)
+    {
+        std::cout << "(" << (*it)->x << ", " << (*it)->y << "); ";
+    }
+    std::cout << "\n";
+
+////////////////////////////////////////////////
+
     draw_graph(&argc, argv);
 
     delete graph;
